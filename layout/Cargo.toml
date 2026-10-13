@@ -1,0 +1,11 @@
+[package]
+name = "tanglewire-layout"
+description = "Graph layout for TangleWire: no GUI or PipeWire dependency"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+
+[dev-dependencies]
+serde_json = "1.0.154"

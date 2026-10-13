@@ -1,0 +1,307 @@
+# A streaming setup: virtual sinks per kind of sound, a processed
+# microphone, and OBS picking up each of them separately. As on a real
+# system, all streams of OBS have the same name and differ in what they carry.
+# The voice chat is levelled by two effect nodes without a class, which are
+# hidden until asked for.
+
+[[device]]
+key = "scarlett"
+name = "Scarlett Solo 4th Gen"
+vendor = "Focusrite"
+
+[[device]]
+key = "gpu"
+name = "HDMI / DisplayPort Audio"
+vendor = "NVIDIA"
+
+[[device]]
+key = "capture"
+name = "Game Capture HD60 S+"
+vendor = "Elgato"
+
+[[node]]
+name = "Scarlett Solo Mic"
+class = "Audio/Source"
+device = "scarlett"
+outputs = ["capture_MONO"]
+
+[[node]]
+name = "Scarlett Solo Headphones"
+class = "Audio/Sink"
+device = "scarlett"
+inputs = ["playback_FL", "playback_FR"]
+monitor = true
+
+[[node]]
+name = "HDMI Output"
+class = "Audio/Sink"
+device = "gpu"
+inputs = ["playback_FL", "playback_FR"]
+monitor = true
+
+[[node]]
+name = "Game Capture HD60 S+"
+class = "Audio/Source"
+device = "capture"
+outputs = ["capture_FL", "capture_FR"]
+
+[[node]]
+key = "capture-video"
+name = "Game Capture HD60 S+ Video"
+class = "Video/Source"
+device = "capture"
+kind = "video"
+outputs = ["capture_1"]
+
+[[node]]
+name = "Mic Chain Sink"
+class = "Audio/Sink"
+link_group = "mic-chain"
+inputs = ["playback_MONO"]
+
+[[node]]
+name = "Mic Chain Output"
+class = "Audio/Source/Virtual"
+link_group = "mic-chain"
+outputs = ["capture_MONO"]
+
+[[node]]
+name = "Bass EQ Sink"
+class = "Audio/Sink"
+link_group = "bass-eq"
+inputs = ["playback_FL", "playback_FR"]
+
+[[node]]
+name = "Bass EQ Output"
+class = "Stream/Output/Audio"
+link_group = "bass-eq"
+outputs = ["output_FL", "output_FR"]
+
+[[node]]
+name = "Desktop"
+class = "Audio/Sink"
+inputs = ["playback_FL", "playback_FR"]
+monitor = true
+
+[[node]]
+name = "Media"
+class = "Audio/Sink"
+inputs = ["playback_FL", "playback_FR"]
+monitor = true
+
+[[node]]
+name = "Comms"
+class = "Audio/Sink"
+inputs = ["playback_FL", "playback_FR"]
+monitor = true
+
+[[node]]
+name = "Monitor"
+class = "Audio/Sink"
+inputs = ["playback_FL", "playback_FR"]
+monitor = true
+
+[[node]]
+key = "voice-eq"
+name = "Equalizer"
+app = "Voice Effects"
+inputs = ["input_FL", "input_FR"]
+outputs = ["output_FL", "output_FR"]
+
+[[node]]
+key = "voice-limiter"
+name = "Limiter"
+app = "Voice Effects"
+inputs = ["input_FL", "input_FR"]
+outputs = ["output_FL", "output_FR"]
+
+[[node]]
+name = "Firefox"
+class = "Stream/Output/Audio"
+app = "Firefox"
+outputs = ["output_FL", "output_FR"]
+
+[[node]]
+name = "Spotify"
+class = "Stream/Output/Audio"
+app = "Spotify"
+outputs = ["output_FL", "output_FR"]
+
+[[node]]
+name = "Elden Ring"
+class = "Stream/Output/Audio"
+app = "Elden Ring"
+outputs = ["output_FL", "output_FR"]
+
+[[node]]
+key = "discord-out"
+name = "Discord"
+media = "Voice output"
+class = "Stream/Output/Audio"
+app = "Discord"
+outputs = ["output_FL", "output_FR"]
+
+[[node]]
+key = "discord-in"
+name = "Discord"
+media = "Voice input"
+class = "Stream/Input/Audio"
+app = "Discord"
+inputs = ["input_MONO"]
+
+[[node]]
+name = "Screen Capture"
+class = "Video/Source"
+kind = "video"
+outputs = ["capture_1"]
+
+[[node]]
+key = "obs-desktop"
+name = "OBS"
+media = "Desktop Audio"
+class = "Stream/Input/Audio"
+app = "OBS"
+inputs = ["input_FL", "input_FR"]
+
+[[node]]
+key = "obs-media"
+name = "OBS"
+media = "Media"
+class = "Stream/Input/Audio"
+app = "OBS"
+inputs = ["input_FL", "input_FR"]
+
+[[node]]
+key = "obs-comms"
+name = "OBS"
+media = "Comms"
+class = "Stream/Input/Audio"
+app = "OBS"
+inputs = ["input_FL", "input_FR"]
+
+[[node]]
+key = "obs-console"
+name = "OBS"
+media = "Console"
+class = "Stream/Input/Audio"
+app = "OBS"
+inputs = ["input_FL", "input_FR"]
+
+[[node]]
+key = "obs-mic"
+name = "OBS"
+media = "Mic"
+class = "Stream/Input/Audio"
+app = "OBS"
+inputs = ["input_MONO"]
+
+[[node]]
+key = "obs-screen"
+name = "OBS"
+media = "Screen"
+class = "Stream/Input/Video"
+app = "OBS"
+kind = "video"
+inputs = ["input_1"]
+
+[[node]]
+key = "obs-console-video"
+name = "OBS"
+media = "Console Video"
+class = "Stream/Input/Video"
+app = "OBS"
+kind = "video"
+inputs = ["input_1"]
+
+[[link]]
+from = "Scarlett Solo Mic"
+to = "Mic Chain Sink"
+
+[[link]]
+from = "Mic Chain Output"
+to = "discord-in"
+
+[[link]]
+from = "Mic Chain Output"
+to = "obs-mic"
+
+[[link]]
+from = "Firefox"
+to = "Media"
+
+[[link]]
+from = "Spotify"
+to = "Media"
+
+[[link]]
+from = "Elden Ring"
+to = "Desktop"
+
+[[link]]
+from = "discord-out"
+to = "Comms"
+
+[[link]]
+from = "Desktop"
+to = "Monitor"
+
+[[link]]
+from = "Media"
+to = "Monitor"
+
+[[link]]
+from = "Comms"
+to = "voice-eq"
+
+[[link]]
+from = "voice-eq"
+to = "voice-limiter"
+
+[[link]]
+from = "voice-limiter"
+to = "Monitor"
+
+[[link]]
+from = "Game Capture HD60 S+"
+to = "Monitor"
+
+[[link]]
+from = "Monitor"
+to = "Bass EQ Sink"
+
+[[link]]
+from = "Bass EQ Output"
+to = "Scarlett Solo Headphones"
+
+[[link]]
+from = "Desktop"
+to = "obs-desktop"
+
+[[link]]
+from = "Media"
+to = "obs-media"
+
+[[link]]
+from = "Comms"
+to = "obs-comms"
+
+[[link]]
+from = "Game Capture HD60 S+"
+to = "obs-console"
+
+[[link]]
+from = "Screen Capture"
+to = "obs-screen"
+
+[[link]]
+from = "capture-video"
+to = "obs-console-video"
+
+# Not there at first: the demo script lets it appear and go away again.
+[[node]]
+key = "vlc"
+name = "VLC media player"
+class = "Stream/Output/Audio"
+app = "VLC media player"
+outputs = ["output_FL", "output_FR"]
+later = true

@@ -1,0 +1,53 @@
+name: Release
+
+# Pushing a tag like v0.1.0 builds the application and publishes it as a
+# GitHub release.
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    # Built on Debian 13, the oldest system the result is meant to run on:
+    # GTK 4.18, libadwaita 1.7, glibc 2.41.
+    container: debian:trixie
+    steps:
+      - name: Install build dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            build-essential clang pkg-config curl ca-certificates git gh \
+            libgtk-4-dev libadwaita-1-dev libpipewire-0.3-dev
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+      - uses: actions/checkout@v4
+      - name: Check that the tag matches the version in Cargo.toml
+        run: |
+          version=$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -n 1)
+          test "v$version" = "$GITHUB_REF_NAME" || {
+            echo "tag $GITHUB_REF_NAME does not match version $version" >&2
+            exit 1
+          }
+      - name: Test
+        run: cargo test --locked
+      - name: Build
+        run: cargo build --release --locked
+      - name: Package
+        run: |
+          name="tanglewire-$GITHUB_REF_NAME-x86_64-linux"
+          mkdir "$name"
+          cp target/release/tanglewire README.md UNLICENSE "$name/"
+          cp data/net.codefreak.TangleWire.desktop data/net.codefreak.TangleWire.svg "$name/"
+          tar -czf "$name.tar.gz" "$name"
+          sha256sum "$name.tar.gz" > "$name.tar.gz.sha256"
+      - name: Publish
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config --global --add safe.directory "$GITHUB_WORKSPACE"
+          gh release create "$GITHUB_REF_NAME" tanglewire-*.tar.gz tanglewire-*.sha256 \
+            --title "TangleWire $GITHUB_REF_NAME" --generate-notes

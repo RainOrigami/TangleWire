@@ -1,0 +1,164 @@
+# A tour of the application on the streamer scenario:
+#   tanglewire --mock data/demo/streamer.toml --demo data/demo/tour.toml
+
+[[step]]
+wait = 1.5
+[[step]]
+caption = "TangleWire lays your PipeWire graph out by itself"
+[[step]]
+wait = 3
+
+[[step]]
+caption = "Hover a port to see what it is linked to"
+[[step]]
+hover = "Monitor:playback_FL"
+[[step]]
+wait = 3
+
+[[step]]
+caption = "A new stream is marked, with an arrow if it is out of view"
+[[step]]
+hover = "Firefox"
+[[step]]
+appear = "vlc"
+[[step]]
+wait = 3.5
+[[step]]
+show = "vlc"
+zoom = 1.0
+[[step]]
+wait = 1.5
+
+[[step]]
+caption = "Search finds things by name, id or property, even misspelt"
+[[step]]
+search = "meida"
+[[step]]
+wait = 1.2
+[[step]]
+enter = true
+[[step]]
+wait = 2
+[[step]]
+escape = true
+
+[[step]]
+caption = "The node list keeps every link source in one place"
+[[step]]
+key = "list"
+[[step]]
+filter = "vlc"
+[[step]]
+wait = 1
+[[step]]
+caption = "Drag a whole node onto another: every channel is linked"
+[[step]]
+drag = ["list:vlc", "Media"]
+[[step]]
+wait = 2.5
+[[step]]
+key = "list"
+[[step]]
+key = "fit"
+[[step]]
+wait = 2
+
+[[step]]
+caption = "Groups fold into one card; the four OBS inputs become one pair of ports"
+[[step]]
+key = "groups"
+[[step]]
+wait = 3.5
+[[step]]
+key = "groups"
+[[step]]
+wait = 2
+
+[[step]]
+caption = "A dashed link stands for a chain of hidden nodes"
+[[step]]
+show = "Comms"
+zoom = 1.0
+[[step]]
+wait = 1
+[[step]]
+hover = "Comms:monitor_FL"
+[[step]]
+wait = 3
+[[step]]
+caption = "H shows what is hidden, in the group it belongs to"
+[[step]]
+key = "hidden"
+[[step]]
+wait = 1
+[[step]]
+show = "voice-eq"
+zoom = 1.0
+[[step]]
+wait = 3
+[[step]]
+key = "hidden"
+[[step]]
+key = "fit"
+[[step]]
+wait = 2
+
+[[step]]
+caption = "Split view gives every link its own row"
+[[step]]
+key = "split"
+[[step]]
+wait = 3
+[[step]]
+caption = "Right click a port to jump to the other end of its link"
+[[step]]
+show = "obs-media"
+zoom = 1.0
+[[step]]
+wait = 1
+[[step]]
+jump = "obs-media:input_FL"
+[[step]]
+wait = 2.5
+[[step]]
+key = "back"
+[[step]]
+wait = 1.5
+[[step]]
+key = "split"
+[[step]]
+wait = 1.2
+
+[[step]]
+caption = "A stream that goes away stays as a ghost until the next change"
+[[step]]
+show = "vlc"
+zoom = 1.0
+[[step]]
+wait = 2
+[[step]]
+vanish = "vlc"
+[[step]]
+wait = 4.5
+
+[[step]]
+caption = "Drag port to port to link, drag again to unlink"
+[[step]]
+show = "Spotify"
+zoom = 1.0
+[[step]]
+wait = 1
+[[step]]
+drag = ["Spotify:output_FL", "Desktop:playback_FL"]
+[[step]]
+wait = 2
+[[step]]
+drag = ["Spotify:output_FL", "Desktop:playback_FL"]
+[[step]]
+wait = 2
+[[step]]
+key = "fit"
+[[step]]
+caption = ""
+[[step]]
+wait = 1.5

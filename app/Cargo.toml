@@ -1,0 +1,17 @@
+[package]
+name = "tanglewire"
+description = "A PipeWire patchbay that lays itself out"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+tanglewire-layout = { path = "../layout" }
+# Feature flags stay well below the installed GTK 4.24 / libadwaita 1.10.
+gtk = { package = "gtk4", version = "0.11", features = ["v4_16"] }
+adw = { package = "libadwaita", version = "0.9", features = ["v1_6"] }
+pipewire = "0.10"
+async-channel = "2"
+toml = "1.1.8"
+serde = { version = "1.0.229", features = ["derive"] }
+regex = "1.13.1"

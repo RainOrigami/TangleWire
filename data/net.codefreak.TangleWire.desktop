@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=TangleWire
+GenericName=PipeWire Patchbay
+Comment=A PipeWire patchbay that lays itself out
+Exec=tanglewire
+Icon=net.codefreak.TangleWire
+Terminal=false
+Categories=AudioVideo;Audio;
+Keywords=pipewire;patchbay;audio;midi;video;graph;
+StartupWMClass=net.codefreak.TangleWire

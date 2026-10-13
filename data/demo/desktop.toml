@@ -1,0 +1,98 @@
+# An ordinary desktop: a browser, a music player, a voice chat and a game on
+# built-in audio and a USB headset.
+
+[[device]]
+key = "onboard"
+name = "Built-in Audio"
+vendor = "Intel"
+
+[[device]]
+key = "headset"
+name = "USB Headset"
+vendor = "Logitech"
+
+[[node]]
+name = "Firefox"
+class = "Stream/Output/Audio"
+app = "Firefox"
+outputs = ["output_FL", "output_FR"]
+
+[[node]]
+name = "Spotify"
+class = "Stream/Output/Audio"
+app = "Spotify"
+outputs = ["output_FL", "output_FR"]
+
+[[node]]
+name = "Hollow Knight"
+class = "Stream/Output/Audio"
+app = "Hollow Knight"
+outputs = ["output_FL", "output_FR"]
+
+[[node]]
+key = "discord-out"
+name = "Discord"
+media = "Voice output"
+class = "Stream/Output/Audio"
+app = "Discord"
+outputs = ["output_FL", "output_FR"]
+
+[[node]]
+key = "discord-in"
+name = "Discord"
+media = "Voice input"
+class = "Stream/Input/Audio"
+app = "Discord"
+inputs = ["input_MONO"]
+
+[[node]]
+name = "Built-in Audio Speakers"
+class = "Audio/Sink"
+device = "onboard"
+inputs = ["playback_FL", "playback_FR"]
+monitor = true
+
+[[node]]
+name = "Built-in Audio Microphone"
+class = "Audio/Source"
+device = "onboard"
+outputs = ["capture_FL", "capture_FR"]
+
+[[node]]
+name = "USB Headset Headphones"
+class = "Audio/Sink"
+device = "headset"
+inputs = ["playback_FL", "playback_FR"]
+monitor = true
+
+[[node]]
+name = "USB Headset Microphone"
+class = "Audio/Source"
+device = "headset"
+outputs = ["capture_MONO"]
+
+[[node]]
+name = "Integrated Webcam"
+class = "Video/Source"
+kind = "video"
+outputs = ["capture_1"]
+
+[[link]]
+from = "Firefox"
+to = "Built-in Audio Speakers"
+
+[[link]]
+from = "Spotify"
+to = "Built-in Audio Speakers"
+
+[[link]]
+from = "Hollow Knight"
+to = "USB Headset Headphones"
+
+[[link]]
+from = "discord-out"
+to = "USB Headset Headphones"
+
+[[link]]
+from = "USB Headset Microphone"
+to = "discord-in"

@@ -1,0 +1,534 @@
+# A music studio: two audio interfaces, a DAW, a plugin rack, hardware
+# synths over MIDI, and outboard gear on send and return.
+
+[[device]]
+key = "clarett"
+name = "Clarett+ 8Pre"
+vendor = "Focusrite"
+
+[[device]]
+key = "fireface"
+name = "Fireface UCX II"
+vendor = "RME"
+
+[[device]]
+key = "midi"
+name = "MIDI Express XT"
+vendor = "MOTU"
+
+[[device]]
+key = "push"
+name = "Push 2"
+vendor = "Ableton"
+
+[[device]]
+key = "keys"
+name = "Keystation 88 MK3"
+vendor = "M-Audio"
+
+[[node]]
+key = "clarett-in"
+name = "Clarett+ 8Pre Inputs"
+class = "Audio/Source"
+device = "clarett"
+outputs = ["capture_AUX0", "capture_AUX1", "capture_AUX2", "capture_AUX3", "capture_AUX4", "capture_AUX5", "capture_AUX6", "capture_AUX7"]
+
+[[node]]
+key = "clarett-out"
+name = "Clarett+ 8Pre Outputs"
+class = "Audio/Sink"
+device = "clarett"
+inputs = ["playback_AUX0", "playback_AUX1", "playback_AUX2", "playback_AUX3", "playback_AUX4", "playback_AUX5", "playback_AUX6", "playback_AUX7", "playback_AUX8", "playback_AUX9"]
+
+[[node]]
+key = "ff-in"
+name = "Fireface UCX II Inputs"
+class = "Audio/Source"
+device = "fireface"
+outputs = ["capture_AUX0", "capture_AUX1", "capture_AUX2", "capture_AUX3", "capture_AUX4", "capture_AUX5", "capture_AUX6", "capture_AUX7"]
+
+[[node]]
+key = "ff-out"
+name = "Fireface UCX II Outputs"
+class = "Audio/Sink"
+device = "fireface"
+inputs = ["playback_AUX0", "playback_AUX1", "playback_AUX2", "playback_AUX3", "playback_AUX4", "playback_AUX5", "playback_AUX6", "playback_AUX7"]
+
+[[node]]
+key = "daw-in"
+name = "Bitwig Studio Inputs"
+class = "Stream/Input/Audio"
+app = "Bitwig Studio"
+inputs = ["in1", "in2", "in3", "in4", "in5", "in6", "in7", "in8", "in9", "in10", "in11", "in12", "in13", "in14", "in15", "in16"]
+
+[[node]]
+key = "daw-out"
+name = "Bitwig Studio Outputs"
+class = "Stream/Output/Audio"
+app = "Bitwig Studio"
+outputs = ["out1", "out2", "out3", "out4", "out5", "out6", "out7", "out8", "out9", "out10", "out11", "out12"]
+
+[[node]]
+key = "daw-midi"
+name = "Bitwig Studio MIDI"
+class = "Midi/Bridge"
+app = "Bitwig Studio"
+kind = "midi"
+inputs = ["midi_in1", "midi_in2", "midi_in3", "midi_in4"]
+outputs = ["midi_out1", "midi_out2", "midi_out3", "midi_out4", "midi_out5", "midi_out6"]
+
+[[node]]
+key = "mx"
+name = "MIDI Express XT"
+class = "Midi/Bridge"
+device = "midi"
+kind = "midi"
+inputs = ["Port 1 (playback)", "Port 2 (playback)", "Port 3 (playback)", "Port 4 (playback)", "Port 5 (playback)", "Port 6 (playback)"]
+outputs = ["Port 1 (capture)", "Port 2 (capture)"]
+
+[[node]]
+key = "keystation"
+name = "Keystation 88 MK3"
+class = "Midi/Bridge"
+device = "keys"
+kind = "midi"
+outputs = ["USB MIDI (capture)", "Transport (capture)"]
+
+[[node]]
+key = "push2"
+name = "Push 2"
+class = "Midi/Bridge"
+device = "push"
+kind = "midi"
+inputs = ["Live Port (playback)", "User Port (playback)"]
+outputs = ["Live Port (capture)", "User Port (capture)"]
+
+[[node]]
+key = "launchpad"
+name = "Launchpad Pro"
+class = "Midi/Bridge"
+kind = "midi"
+inputs = ["DAW (playback)"]
+outputs = ["DAW (capture)", "MIDI (capture)"]
+
+[[node]]
+name = "Hydrogen"
+class = "Stream/Output/Audio"
+app = "Hydrogen"
+outputs = ["output_FL", "output_FR"]
+
+[[node]]
+key = "hydrogen-midi"
+name = "Hydrogen MIDI"
+class = "Midi/Bridge"
+app = "Hydrogen"
+kind = "midi"
+inputs = ["midi_in"]
+
+[[node]]
+name = "Qsynth"
+class = "Stream/Output/Audio"
+app = "Qsynth"
+outputs = ["output_FL", "output_FR"]
+
+[[node]]
+key = "qsynth-midi"
+name = "Qsynth MIDI"
+class = "Midi/Bridge"
+app = "Qsynth"
+kind = "midi"
+inputs = ["midi_in"]
+
+[[node]]
+key = "gx-in"
+name = "Guitarix Amp"
+class = "Stream/Input/Audio"
+app = "Guitarix"
+inputs = ["in_0"]
+
+[[node]]
+key = "gx-out"
+name = "Guitarix FX"
+class = "Stream/Output/Audio"
+app = "Guitarix"
+outputs = ["out_0", "out_1"]
+
+[[node]]
+key = "eq-in"
+name = "x42 Parametric EQ In"
+class = "Stream/Input/Audio"
+app = "Carla"
+link_group = "carla-eq"
+inputs = ["input_FL", "input_FR"]
+
+[[node]]
+key = "eq-out"
+name = "x42 Parametric EQ Out"
+class = "Stream/Output/Audio"
+app = "Carla"
+link_group = "carla-eq"
+outputs = ["output_FL", "output_FR"]
+
+[[node]]
+key = "comp-in"
+name = "LSP Compressor Stereo In"
+class = "Stream/Input/Audio"
+app = "Carla"
+link_group = "carla-comp"
+inputs = ["input_FL", "input_FR"]
+
+[[node]]
+key = "comp-out"
+name = "LSP Compressor Stereo Out"
+class = "Stream/Output/Audio"
+app = "Carla"
+link_group = "carla-comp"
+outputs = ["output_FL", "output_FR"]
+
+[[node]]
+key = "verb-in"
+name = "Dragonfly Hall Reverb In"
+class = "Stream/Input/Audio"
+app = "Carla"
+link_group = "carla-verb"
+inputs = ["input_FL", "input_FR"]
+
+[[node]]
+key = "verb-out"
+name = "Dragonfly Hall Reverb Out"
+class = "Stream/Output/Audio"
+app = "Carla"
+link_group = "carla-verb"
+outputs = ["output_FL", "output_FR"]
+
+[[node]]
+key = "limit-in"
+name = "Calf Limiter In"
+class = "Stream/Input/Audio"
+app = "Carla"
+link_group = "carla-limit"
+inputs = ["input_FL", "input_FR"]
+
+[[node]]
+key = "limit-out"
+name = "Calf Limiter Out"
+class = "Stream/Output/Audio"
+app = "Carla"
+link_group = "carla-limit"
+outputs = ["output_FL", "output_FR"]
+
+[[node]]
+key = "mon"
+name = "Monitor Mix"
+class = "Audio/Sink"
+inputs = ["playback_FL", "playback_FR"]
+monitor = true
+
+[[node]]
+key = "hp-a"
+name = "Headphone Mix A"
+class = "Audio/Sink"
+inputs = ["playback_FL", "playback_FR"]
+monitor = true
+
+[[node]]
+key = "hp-b"
+name = "Headphone Mix B"
+class = "Audio/Sink"
+inputs = ["playback_FL", "playback_FR"]
+monitor = true
+
+[[node]]
+name = "Talkback"
+class = "Audio/Source/Virtual"
+outputs = ["capture_MONO"]
+
+[[node]]
+name = "Firefox"
+class = "Stream/Output/Audio"
+app = "Firefox"
+outputs = ["output_FL", "output_FR"]
+
+[[node]]
+key = "audacity"
+name = "Audacity Recording"
+class = "Stream/Input/Audio"
+app = "Audacity"
+inputs = ["input_FL", "input_FR"]
+
+[[node]]
+key = "jam-in"
+name = "Jamulus Send"
+class = "Stream/Input/Audio"
+app = "Jamulus"
+inputs = ["input_FL", "input_FR"]
+
+[[node]]
+key = "jam-out"
+name = "Jamulus Receive"
+class = "Stream/Output/Audio"
+app = "Jamulus"
+outputs = ["output_FL", "output_FR"]
+
+[[node]]
+key = "obs"
+name = "OBS Studio Mix"
+class = "Stream/Input/Audio"
+app = "OBS"
+inputs = ["input_FL", "input_FR"]
+
+[[link]]
+from = "clarett-in:capture_AUX0"
+to = "daw-in:in1"
+
+[[link]]
+from = "clarett-in:capture_AUX1"
+to = "daw-in:in2"
+
+[[link]]
+from = "clarett-in:capture_AUX2"
+to = "daw-in:in3"
+
+[[link]]
+from = "clarett-in:capture_AUX3"
+to = "daw-in:in4"
+
+[[link]]
+from = "clarett-in:capture_AUX4"
+to = "daw-in:in5"
+
+[[link]]
+from = "clarett-in:capture_AUX5"
+to = "daw-in:in6"
+
+[[link]]
+from = "clarett-in:capture_AUX6"
+to = "daw-in:in7"
+
+[[link]]
+from = "clarett-in:capture_AUX7"
+to = "daw-in:in8"
+
+[[link]]
+from = "ff-in:capture_AUX0"
+to = "daw-in:in9"
+
+[[link]]
+from = "ff-in:capture_AUX1"
+to = "daw-in:in10"
+
+[[link]]
+from = "ff-in:capture_AUX2"
+to = "daw-in:in11"
+
+[[link]]
+from = "ff-in:capture_AUX3"
+to = "daw-in:in12"
+
+[[link]]
+from = "ff-in:capture_AUX4"
+to = "gx-in:in_0"
+
+[[link]]
+from = "gx-out:out_0"
+to = "daw-in:in13"
+
+[[link]]
+from = "gx-out:out_1"
+to = "daw-in:in14"
+
+[[link]]
+from = "Hydrogen:output_FL"
+to = "daw-in:in15"
+
+[[link]]
+from = "Hydrogen:output_FR"
+to = "daw-in:in16"
+
+[[link]]
+from = "daw-out:out1"
+to = "eq-in:input_FL"
+
+[[link]]
+from = "daw-out:out2"
+to = "eq-in:input_FR"
+
+[[link]]
+from = "eq-out"
+to = "comp-in"
+
+[[link]]
+from = "comp-out"
+to = "limit-in"
+
+[[link]]
+from = "limit-out"
+to = "mon"
+
+[[link]]
+from = "mon:monitor_FL"
+to = "clarett-out:playback_AUX0"
+
+[[link]]
+from = "mon:monitor_FR"
+to = "clarett-out:playback_AUX1"
+
+[[link]]
+from = "daw-out:out3"
+to = "verb-in:input_FL"
+
+[[link]]
+from = "daw-out:out4"
+to = "verb-in:input_FR"
+
+[[link]]
+from = "verb-out"
+to = "mon"
+
+[[link]]
+from = "daw-out:out5"
+to = "hp-a:playback_FL"
+
+[[link]]
+from = "daw-out:out6"
+to = "hp-a:playback_FR"
+
+[[link]]
+from = "daw-out:out7"
+to = "hp-b:playback_FL"
+
+[[link]]
+from = "daw-out:out8"
+to = "hp-b:playback_FR"
+
+[[link]]
+from = "hp-a:monitor_FL"
+to = "clarett-out:playback_AUX2"
+
+[[link]]
+from = "hp-a:monitor_FR"
+to = "clarett-out:playback_AUX3"
+
+[[link]]
+from = "hp-b:monitor_FL"
+to = "clarett-out:playback_AUX4"
+
+[[link]]
+from = "hp-b:monitor_FR"
+to = "clarett-out:playback_AUX5"
+
+[[link]]
+from = "Talkback:capture_MONO"
+to = "hp-a:playback_FL"
+
+[[link]]
+from = "Talkback:capture_MONO"
+to = "hp-a:playback_FR"
+
+[[link]]
+from = "Talkback:capture_MONO"
+to = "hp-b:playback_FL"
+
+[[link]]
+from = "Talkback:capture_MONO"
+to = "hp-b:playback_FR"
+
+[[link]]
+from = "daw-out:out9"
+to = "ff-out:playback_AUX0"
+
+[[link]]
+from = "daw-out:out10"
+to = "ff-out:playback_AUX1"
+
+[[link]]
+from = "daw-out:out11"
+to = "ff-out:playback_AUX2"
+
+[[link]]
+from = "daw-out:out12"
+to = "ff-out:playback_AUX3"
+
+[[link]]
+from = "ff-in:capture_AUX6"
+to = "verb-in:input_FL"
+
+[[link]]
+from = "ff-in:capture_AUX7"
+to = "verb-in:input_FR"
+
+[[link]]
+from = "mon"
+to = "audacity"
+
+[[link]]
+from = "mon"
+to = "jam-in"
+
+[[link]]
+from = "mon"
+to = "obs"
+
+[[link]]
+from = "jam-out"
+to = "hp-a"
+
+[[link]]
+from = "Qsynth"
+to = "mon"
+
+[[link]]
+from = "Firefox"
+to = "mon"
+
+[[link]]
+from = "keystation:USB MIDI (capture)"
+to = "daw-midi:midi_in1"
+
+[[link]]
+from = "keystation:Transport (capture)"
+to = "daw-midi:midi_in2"
+
+[[link]]
+from = "push2:Live Port (capture)"
+to = "daw-midi:midi_in3"
+
+[[link]]
+from = "launchpad:DAW (capture)"
+to = "daw-midi:midi_in4"
+
+[[link]]
+from = "daw-midi:midi_out5"
+to = "push2:Live Port (playback)"
+
+[[link]]
+from = "daw-midi:midi_out6"
+to = "launchpad:DAW (playback)"
+
+[[link]]
+from = "keystation:USB MIDI (capture)"
+to = "qsynth-midi:midi_in"
+
+[[link]]
+from = "launchpad:MIDI (capture)"
+to = "hydrogen-midi:midi_in"
+
+[[link]]
+from = "daw-midi:midi_out1"
+to = "mx:Port 1 (playback)"
+
+[[link]]
+from = "daw-midi:midi_out2"
+to = "mx:Port 2 (playback)"
+
+[[link]]
+from = "daw-midi:midi_out3"
+to = "mx:Port 3 (playback)"
+
+[[link]]
+from = "daw-midi:midi_out4"
+to = "mx:Port 4 (playback)"
+
+[[link]]
+from = "mx:Port 1 (capture)"
+to = "daw-midi:midi_in1"

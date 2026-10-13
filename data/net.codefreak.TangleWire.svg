@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Three patch cables: tangled where they leave their ports on the left,
+     sorted out and parallel by the time they arrive on the right. -->
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" width="128" height="128">
+  <rect x="4" y="4" width="120" height="120" rx="26" fill="#241f31"/>
+  <g fill="none" stroke-width="7" stroke-linecap="round">
+    <path stroke="#57e389" d="M24 88 C40 88 40 64 56 64 C68 64 68 88 80 88 L104 88"/>
+    <path stroke="#f8e45c" d="M24 64 C40 64 40 40 56 40 C68 40 68 64 80 64 L104 64"/>
+    <path stroke="#62a0ea" d="M24 40 C40 40 40 88 56 88 C68 88 68 40 80 40 L104 40"/>
+  </g>
+  <g stroke="#241f31" stroke-width="3">
+    <circle cx="24" cy="40" r="8" fill="#62a0ea"/>
+    <circle cx="24" cy="64" r="8" fill="#f8e45c"/>
+    <circle cx="24" cy="88" r="8" fill="#57e389"/>
+    <circle cx="104" cy="40" r="8" fill="#62a0ea"/>
+    <circle cx="104" cy="64" r="8" fill="#f8e45c"/>
+    <circle cx="104" cy="88" r="8" fill="#57e389"/>
+  </g>
+</svg>

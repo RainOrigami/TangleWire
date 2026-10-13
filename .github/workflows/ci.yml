@@ -1,0 +1,26 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    # Debian 13 has GTK 4.18 and libadwaita 1.7; the runner's own Ubuntu is too old.
+    container: debian:trixie
+    steps:
+      - name: Install build dependencies
+        run: |
+          apt-get update
+          apt-get install -y --no-install-recommends \
+            build-essential clang pkg-config curl ca-certificates git \
+            libgtk-4-dev libadwaita-1-dev libpipewire-0.3-dev
+          curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y --profile minimal
+          echo "$HOME/.cargo/bin" >> "$GITHUB_PATH"
+      - uses: actions/checkout@v4
+      - name: Build
+        run: cargo build --locked
+      - name: Test
+        run: cargo test --locked
