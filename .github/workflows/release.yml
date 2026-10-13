@@ -51,3 +51,43 @@ jobs:
           git config --global --add safe.directory "$GITHUB_WORKSPACE"
           gh release create "$GITHUB_REF_NAME" tanglewire-*.tar.gz tanglewire-*.sha256 \
             --title "TangleWire $GITHUB_REF_NAME" --generate-notes
+
+  # Points the AUR package at the release just made. The package itself was
+  # put on the AUR by hand; this only moves its version and checksum.
+  aur:
+    needs: release
+    runs-on: ubuntu-latest
+    container: archlinux:base-devel
+    steps:
+      - name: Install git and ssh
+        run: pacman -Syu --noconfirm git openssh
+      - name: Update the package
+        env:
+          AUR_SSH_PRIVATE_KEY: ${{ secrets.AUR_SSH_PRIVATE_KEY }}
+        run: |
+          version=${GITHUB_REF_NAME#v}
+          keys=$(mktemp -d)
+          printf '%s\n' "$AUR_SSH_PRIVATE_KEY" > "$keys/key"
+          chmod 600 "$keys/key"
+          # The host key the AUR publishes on its front page.
+          echo "aur.archlinux.org ssh-ed25519 AAAAC3NzaC1lZDI1NTE5AAAAIEuBKrPzbawxA/k2g6NcyV5jmqwJ2s+zpgZGZ7tpLIcN" > "$keys/hosts"
+          export GIT_SSH_COMMAND="ssh -i $keys/key -o IdentitiesOnly=yes -o UserKnownHostsFile=$keys/hosts -o StrictHostKeyChecking=yes"
+
+          git clone ssh://aur@aur.archlinux.org/tanglewire.git aur
+          cd aur
+          sum=$(curl -fsSL "https://github.com/$GITHUB_REPOSITORY/archive/refs/tags/$GITHUB_REF_NAME.tar.gz" | sha256sum | cut -d ' ' -f 1)
+          if [ "$(sed -n 's/^pkgver=//p' PKGBUILD)" != "$version" ]; then
+            sed -i "s/^pkgver=.*/pkgver=$version/; s/^pkgrel=.*/pkgrel=1/" PKGBUILD
+          fi
+          sed -i "s/^sha256sums=.*/sha256sums=('$sum')/" PKGBUILD
+          # makepkg refuses to run as root.
+          useradd --create-home builder
+          chown -R builder .
+          su builder -c 'makepkg --printsrcinfo > .SRCINFO'
+          chown -R root .
+
+          git diff --quiet && exit 0
+          git config user.name "$(git log -1 --format=%an)"
+          git config user.email "$(git log -1 --format=%ae)"
+          git commit -am "Update to $version"
+          git push origin master

@@ -9,6 +9,7 @@
 <p align="center">
   <a href="https://github.com/RainOrigami/tanglewire/actions/workflows/ci.yml"><img src="https://github.com/RainOrigami/tanglewire/actions/workflows/ci.yml/badge.svg" alt="CI"></a>
   <a href="https://github.com/RainOrigami/tanglewire/releases/latest"><img src="https://img.shields.io/github/v/release/RainOrigami/tanglewire" alt="Latest release"></a>
+  <a href="https://aur.archlinux.org/packages/tanglewire"><img src="https://img.shields.io/aur/version/tanglewire" alt="AUR package"></a>
   <a href="UNLICENSE"><img src="https://img.shields.io/badge/license-Unlicense-blue" alt="License: Unlicense"></a>
   <img src="https://img.shields.io/badge/GTK-4-4a86cf" alt="GTK 4">
   <img src="https://img.shields.io/badge/PipeWire-native-57e389" alt="PipeWire">
@@ -111,6 +112,16 @@ A music studio, with two audio interfaces, a DAW, a plugin rack and MIDI gear:
 
 
 ## Install
+
+### Arch Linux
+
+TangleWire is on the AUR as
+[`tanglewire`](https://aur.archlinux.org/packages/tanglewire). It is built
+from source on your machine and follows the releases:
+
+```sh
+yay -S tanglewire
+```
 
 ### Release builds
 
