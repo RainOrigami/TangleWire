@@ -10,6 +10,7 @@ use pipewire as pw;
 use pw::client::ClientChangeMask;
 use pw::device::DeviceChangeMask;
 use pw::node::NodeChangeMask;
+use pw::proxy::ProxyT;
 use pw::spa::utils::dict::DictRef;
 use pw::types::ObjectType;
 
@@ -28,8 +29,29 @@ pub enum Command {
     Unlink(Id),
 }
 
+/// Talks to the PipeWire thread.
+#[derive(Clone)]
+pub struct Handle(pw::channel::Sender<Request>);
+
+impl Handle {
+    pub fn send(&self, command: Command) {
+        let _ = self.0.send(Request::Change(command));
+    }
+
+    /// Drops the connection and makes a new one. The graph is reported again
+    /// from nothing, after an [`Event::Reset`].
+    pub fn reconnect(&self) {
+        let _ = self.0.send(Request::Reconnect);
+    }
+}
+
+enum Request {
+    Change(Command),
+    Reconnect,
+}
+
 /// Starts the PipeWire thread. `emit` is called on that thread.
-pub fn spawn(emit: impl Fn(Event) + Send + 'static) -> pw::channel::Sender<Command> {
+pub fn spawn(emit: impl Fn(Event) + Send + 'static) -> Handle {
     let (sender, receiver) = pw::channel::channel();
     thread::Builder::new()
         .name("pipewire".into())
@@ -40,15 +62,93 @@ pub fn spawn(emit: impl Fn(Event) + Send + 'static) -> pw::channel::Sender<Comma
             }
         })
         .expect("failed to spawn PipeWire thread");
-    sender
+    Handle(sender)
 }
 
 type Emit = Rc<dyn Fn(Event)>;
 
-fn run(events: &Emit, commands: pw::channel::Receiver<Command>) -> Result<(), pw::Error> {
+/// The loop outlives the connection, so that a lost or stuck one can be
+/// replaced.
+fn run(events: &Emit, requests: pw::channel::Receiver<Request>) -> Result<(), pw::Error> {
     pw::init();
     let mainloop = pw::main_loop::MainLoopRc::new(None)?;
-    let context = pw::context::ContextRc::new(&mainloop, None)?;
+    let connection = Rc::new(RefCell::new(open(&mainloop, events)));
+
+    let _requests = requests.attach(mainloop.loop_(), {
+        let events = events.clone();
+        let mainloop = mainloop.clone();
+        move |request| {
+            let command = match request {
+                Request::Change(command) => command,
+                Request::Reconnect => {
+                    // The old connection goes before the new one comes.
+                    let old = connection.borrow_mut().take();
+                    drop(old);
+                    events(Event::Reset);
+                    *connection.borrow_mut() = open(&mainloop, &events);
+                    return;
+                }
+            };
+            let connection = connection.borrow();
+            let Some(Connection { core, registry, .. }) = connection.as_ref() else {
+                events(Event::Notice("Not connected to PipeWire".to_owned()));
+                return;
+            };
+            let result = match command {
+                Command::Link {
+                    out_node,
+                    out_port,
+                    in_node,
+                    in_port,
+                } => core
+                    .create_object::<pw::link::Link>(
+                        "link-factory",
+                        &pw::properties::properties! {
+                            "link.output.node" => out_node.to_string(),
+                            "link.output.port" => out_port.to_string(),
+                            "link.input.node" => in_node.to_string(),
+                            "link.input.port" => in_port.to_string(),
+                            // Keep the link when our proxy goes away.
+                            "object.linger" => "1"
+                        },
+                    )
+                    .map(drop)
+                    .map_err(|e| e.to_string()),
+                Command::Unlink(id) => registry
+                    .destroy_global(id)
+                    .into_result()
+                    .map(drop)
+                    .map_err(|e| e.to_string()),
+            };
+            if let Err(message) = result {
+                events(Event::Notice(message));
+            }
+        }
+    });
+
+    mainloop.run();
+    Ok(())
+}
+
+/// One connection to PipeWire. The listeners go first: they hold the proxies,
+/// which must not outlive the core.
+struct Connection {
+    _registry_listener: pw::registry::Listener,
+    _core_listener: pw::core::Listener,
+    registry: pw::registry::RegistryRc,
+    core: pw::core::CoreRc,
+    _context: pw::context::ContextRc,
+}
+
+/// Connects, or reports why not.
+fn open(mainloop: &pw::main_loop::MainLoopRc, events: &Emit) -> Option<Connection> {
+    connect(mainloop, events)
+        .map_err(|err| events(Event::Error(err.to_string())))
+        .ok()
+}
+
+fn connect(mainloop: &pw::main_loop::MainLoopRc, events: &Emit) -> Result<Connection, pw::Error> {
+    let context = pw::context::ContextRc::new(mainloop, None)?;
     let core = context.connect_rc(None)?;
     let registry = core.get_registry_rc()?;
 
@@ -57,6 +157,13 @@ fn run(events: &Emit, commands: pw::channel::Receiver<Command>) -> Result<(), pw
     let nodes: Rc<RefCell<HashMap<Id, (pw::node::Node, pw::node::NodeListener)>>> = Rc::default();
     // Bound devices and clients with their listeners.
     let others: Rc<RefCell<HashMap<Id, Box<dyn std::any::Any>>>> = Rc::default();
+    // Proxy ids of everything bound above, by global.
+    let bound: Rc<RefCell<HashMap<Id, u32>>> = Rc::default();
+    // Proxies of removed globals, until the server has answered the sync sent
+    // after letting go of them. A bind to a global that was already gone
+    // fails with an error addressed to the proxy, which arrives after the
+    // removal.
+    let leaving: Rc<RefCell<Vec<(pw::spa::utils::result::AsyncSeq, u32)>>> = Rc::default();
     let sync = Rc::new(Sync {
         core: core.downgrade(),
         pending: Cell::new(Some(core.sync(0)?)),
@@ -68,7 +175,9 @@ fn run(events: &Emit, commands: pw::channel::Receiver<Command>) -> Result<(), pw
         .done({
             let events = events.clone();
             let sync = sync.clone();
+            let leaving = leaving.clone();
             move |id, seq| {
+                leaving.borrow_mut().retain(|(sent, _)| *sent != seq);
                 if id == pw::core::PW_ID_CORE && sync.done(seq) {
                     events(Event::Synced);
                 }
@@ -76,13 +185,17 @@ fn run(events: &Emit, commands: pw::channel::Receiver<Command>) -> Result<(), pw
         })
         .error({
             let events = events.clone();
-            let mainloop = mainloop.downgrade();
-            move |id, _seq, _res, message| {
-                if id == pw::core::PW_ID_CORE {
+            let leaving = leaving.clone();
+            move |id, _seq, res, message| {
+                if id == pw::core::PW_ID_CORE && res == -libc::EPIPE {
+                    // The connection is gone, until someone asks for a new one.
                     events(Event::Error(message.to_owned()));
-                    if let Some(mainloop) = mainloop.upgrade() {
-                        mainloop.quit();
-                    }
+                } else if id == pw::core::PW_ID_CORE && res == -libc::ENOENT {
+                    // We let go of something the server had already
+                    // removed ("unknown resource"), which is no news.
+                } else if leaving.borrow().iter().any(|(_, proxy)| *proxy == id) {
+                    // Nor is a short-lived client that went away before we
+                    // could bind it ("no global").
                 } else {
                     // For instance a link that the server refused to make.
                     events(Event::Notice(message.to_owned()));
@@ -98,6 +211,7 @@ fn run(events: &Emit, commands: pw::channel::Receiver<Command>) -> Result<(), pw
             let events = events.clone();
             let nodes = nodes.clone();
             let others = others.clone();
+            let bound = bound.clone();
             let sync = sync.clone();
             move |global| {
                 let Some(props) = global.props else { return };
@@ -133,6 +247,7 @@ fn run(events: &Emit, commands: pw::channel::Receiver<Command>) -> Result<(), pw
                                 }
                             })
                             .register();
+                        bound.borrow_mut().insert(id, node.upcast_ref().id());
                         nodes.borrow_mut().insert(id, (node, listener));
                     }
                     ObjectType::Port => {
@@ -164,6 +279,7 @@ fn run(events: &Emit, commands: pw::channel::Receiver<Command>) -> Result<(), pw
                                 }
                             })
                             .register();
+                        bound.borrow_mut().insert(id, device.upcast_ref().id());
                         others.borrow_mut().insert(id, Box::new((device, listener)));
                     }
                     ObjectType::Client => {
@@ -188,6 +304,7 @@ fn run(events: &Emit, commands: pw::channel::Receiver<Command>) -> Result<(), pw
                                 }
                             })
                             .register();
+                        bound.borrow_mut().insert(id, client.upcast_ref().id());
                         others.borrow_mut().insert(id, Box::new((client, listener)));
                     }
                     ObjectType::Link => {
@@ -203,55 +320,31 @@ fn run(events: &Emit, commands: pw::channel::Receiver<Command>) -> Result<(), pw
             let events = events.clone();
             let nodes = nodes.clone();
             let others = others.clone();
+            let bound = bound.clone();
+            let leaving = leaving.clone();
             let sync = sync.clone();
             move |id| {
                 sync.request();
                 nodes.borrow_mut().remove(&id);
                 others.borrow_mut().remove(&id);
+                if let Some(proxy) = bound.borrow_mut().remove(&id) {
+                    let sent = sync.core.upgrade().and_then(|core| core.sync(0).ok());
+                    if let Some(sent) = sent {
+                        leaving.borrow_mut().push((sent, proxy));
+                    }
+                }
                 events(Event::Removed(id));
             }
         })
         .register();
 
-    let _commands = commands.attach(mainloop.loop_(), {
-        let events = events.clone();
-        let core = core.clone();
-        let registry = registry.clone();
-        move |command| {
-            let result = match command {
-                Command::Link {
-                    out_node,
-                    out_port,
-                    in_node,
-                    in_port,
-                } => core
-                    .create_object::<pw::link::Link>(
-                        "link-factory",
-                        &pw::properties::properties! {
-                            "link.output.node" => out_node.to_string(),
-                            "link.output.port" => out_port.to_string(),
-                            "link.input.node" => in_node.to_string(),
-                            "link.input.port" => in_port.to_string(),
-                            // Keep the link when our proxy goes away.
-                            "object.linger" => "1"
-                        },
-                    )
-                    .map(drop)
-                    .map_err(|e| e.to_string()),
-                Command::Unlink(id) => registry
-                    .destroy_global(id)
-                    .into_result()
-                    .map(drop)
-                    .map_err(|e| e.to_string()),
-            };
-            if let Err(message) = result {
-                events(Event::Notice(message));
-            }
-        }
-    });
-
-    mainloop.run();
-    Ok(())
+    Ok(Connection {
+        _registry_listener,
+        _core_listener,
+        registry,
+        core,
+        _context: context,
+    })
 }
 
 /// Turns bursts of registry changes into one [`Event::Synced`] each, sent once

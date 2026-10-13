@@ -176,7 +176,7 @@ Press **F1** in the application for this list.
 | Arrow keys | Move the view |
 | `Backspace` | Back to the view before a jump |
 | `Delete` | Remove the selected link |
-| `Ctrl+R` | Lay the graph out again |
+| `Ctrl+R` | Lay the graph out again and reconnect to PipeWire |
 
 | Mouse | |
 | --- | --- |

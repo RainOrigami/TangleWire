@@ -371,10 +371,16 @@ fn build_window(app: &adw::Application, options: &Options) {
             }
         },
         None => {
-            let commands = pw::spawn(emit);
-            canvas.connect_command(move |command| {
-                let _ = commands.send(command);
+            let pipewire = pw::spawn(emit);
+            canvas.connect_command({
+                let pipewire = pipewire.clone();
+                move |command| pipewire.send(command)
             });
+            // Also a way out of a connection that was lost or got stuck.
+            if let Some(relayout) = window.lookup_action("relayout") {
+                let relayout = relayout.downcast::<gtk::gio::SimpleAction>().unwrap();
+                relayout.connect_activate(move |_, _| pipewire.reconnect());
+            }
         }
     }
     let pictured = canvas.clone();
@@ -428,6 +434,10 @@ fn build_window(app: &adw::Application, options: &Options) {
                 Event::Error(message) => {
                     status.set_label(&message);
                     status.set_visible(true);
+                }
+                Event::Reset => {
+                    status.set_visible(false);
+                    graph.borrow_mut().apply(Event::Reset);
                 }
                 event => graph.borrow_mut().apply(event),
             }
@@ -658,7 +668,10 @@ fn help_card() -> gtk::Box {
         ("Arrow keys", "Move the view"),
         ("Backspace", "Back to the view before a jump"),
         ("Delete", "Remove the selected link"),
-        ("Ctrl+R", "Lay the graph out again"),
+        (
+            "Ctrl+R",
+            "Lay the graph out again and reconnect to PipeWire",
+        ),
         ("F1", "This help"),
     ];
     const MOUSE: [(&str, &str); 11] = [
@@ -772,7 +785,7 @@ fn link(make: bool) -> glib::ExitCode {
                         return glib::ExitCode::FAILURE;
                     }
                     for command in plan {
-                        let _ = commands.send(command);
+                        commands.send(command);
                     }
                 }
             }

@@ -11,6 +11,7 @@ tanglewire-layout = { path = "../layout" }
 gtk = { package = "gtk4", version = "0.11", features = ["v4_16"] }
 adw = { package = "libadwaita", version = "0.9", features = ["v1_6"] }
 pipewire = "0.10"
+libc = "0.2"
 async-channel = "2"
 toml = "1.1.8"
 serde = { version = "1.0.229", features = ["derive"] }

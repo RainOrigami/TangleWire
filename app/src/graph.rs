@@ -87,6 +87,8 @@ pub enum Event {
     Notice(String),
     /// The connection to PipeWire failed or was lost.
     Error(String),
+    /// A new connection is being made: forget everything reported so far.
+    Reset,
 }
 
 #[derive(Debug, Default, Clone)]
@@ -125,6 +127,7 @@ impl Graph {
                 self.ports.remove(&id);
                 self.links.remove(&id);
             }
+            Event::Reset => *self = Self::default(),
             Event::Synced | Event::Notice(_) | Event::Error(_) => {}
         }
     }

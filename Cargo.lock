@@ -969,11 +969,12 @@ dependencies = [
 
 [[package]]
 name = "tanglewire"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "async-channel",
  "gtk4",
  "libadwaita",
+ "libc",
  "pipewire",
  "regex",
  "serde",
@@ -983,7 +984,7 @@ dependencies = [
 
 [[package]]
 name = "tanglewire-layout"
-version = "0.1.0"
+version = "0.1.1"
 dependencies = [
  "serde_json",
 ]
