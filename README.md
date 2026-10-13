@@ -22,13 +22,15 @@ a node, and related nodes are grouped. When the graph changes, the layout
 adjusts and shows you what changed.
 
 <p align="center">
-<!-- picture: before.png, width="760" -->
+<!-- picture: before.png, width="760" --><img width="1320" height="1400" alt="before" src="https://github.com/user-attachments/assets/e3a8c5ab-7318-47d1-a96b-1d06ddf10ebb" />
+
 </p>
 
 <p align="center"><b>TangleWire sorts it out:</b></p>
 
 <p align="center">
-<!-- picture: after.png -->
+<!-- picture: after.png --><img width="2553" height="496" alt="after" src="https://github.com/user-attachments/assets/bc622e80-1285-4c6b-be79-8b19b419d707" />
+
 </p>
 
 <p align="center">The same graph, on the same machine.</p>
@@ -79,25 +81,34 @@ adjusts and shows you what changed.
 
 <!-- video: tour.mp4, on a line of its own -->
 
+
+https://github.com/user-attachments/assets/94f13080-ebec-48c4-8ad7-c99e524d1fbd
+
+
+
 ## More pictures
 
 An ordinary desktop:
 
-<!-- picture: desktop.png, width="760" -->
+<!-- picture: desktop.png, width="760" --><img width="760" alt="desktop" src="https://github.com/user-attachments/assets/6cf7db39-db26-4514-bfb7-18d3b3662051" />
+
 
 A streaming setup, with a sink for each kind of sound and a processed
 microphone. The dashed links from Comms to Monitor stand for two hidden effect
 nodes between them:
 
-<!-- picture: streamer.png -->
+<!-- picture: streamer.png --><img width="5865" height="1085" alt="streamer" src="https://github.com/user-attachments/assets/a6acb52f-73b6-4fbf-b88e-dcf2a070d6e5" />
+
 
 The same in split view, one row per link:
 
-<!-- picture: streamer-split.png -->
+<!-- picture: streamer-split.png --><img width="5865" height="1083" alt="streamer-split" src="https://github.com/user-attachments/assets/a3a0c742-f3e4-49d4-95b4-cb58efa92fc6" />
+
 
 A music studio, with two audio interfaces, a DAW, a plugin rack and MIDI gear:
 
-<!-- picture: studio.png -->
+<!-- picture: studio.png --><img width="7273" height="2091" alt="studio" src="https://github.com/user-attachments/assets/79020558-357f-4ad7-bbae-8d0ff93b7841" />
+
 
 ## Install
 
