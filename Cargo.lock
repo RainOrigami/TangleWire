@@ -969,7 +969,7 @@ dependencies = [
 
 [[package]]
 name = "tanglewire"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "async-channel",
  "gtk4",
@@ -984,7 +984,7 @@ dependencies = [
 
 [[package]]
 name = "tanglewire-layout"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "serde_json",
 ]
