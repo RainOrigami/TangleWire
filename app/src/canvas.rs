@@ -1772,6 +1772,11 @@ impl Canvas {
     /// Replaces what is shown with `graph`.
     pub fn set_graph(&self, graph: &Graph) {
         let imp = self.imp();
+        let graph = &graph.owned();
+        // Nothing to show for an update that changed nothing shown.
+        if *imp.graph.borrow() == *graph {
+            return;
+        }
         let old = imp.graph.replace(graph.clone());
         // What is new: nodes, and nodes whose ports or links are not what
         // they were. Nothing is marked when the graph is first shown.

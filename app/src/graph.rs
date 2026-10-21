@@ -11,7 +11,7 @@ pub enum Direction {
     Out,
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Node {
     pub id: Id,
     pub props: Props,
@@ -43,7 +43,7 @@ impl Node {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Port {
     pub id: Id,
     pub node: Id,
@@ -91,7 +91,7 @@ pub enum Event {
     Reset,
 }
 
-#[derive(Debug, Default, Clone)]
+#[derive(Debug, Default, Clone, PartialEq)]
 pub struct Graph {
     pub nodes: BTreeMap<Id, Node>,
     pub ports: BTreeMap<Id, Port>,
@@ -129,6 +129,36 @@ impl Graph {
             }
             Event::Reset => *self = Self::default(),
             Event::Synced | Event::Notice(_) | Event::Error(_) => {}
+        }
+    }
+
+    /// The graph without devices and clients that own no node. Those are
+    /// never shown, and short-lived clients (`pw-link`, `pactl`, ...) would
+    /// otherwise make every one of their visits look like a change.
+    pub fn owned(&self) -> Self {
+        let owners = |key| -> std::collections::BTreeSet<Id> {
+            self.nodes
+                .values()
+                .filter_map(|n| n.prop(key)?.parse().ok())
+                .collect()
+        };
+        let (devices, clients) = (owners("device.id"), owners("client.id"));
+        Self {
+            nodes: self.nodes.clone(),
+            ports: self.ports.clone(),
+            links: self.links.clone(),
+            devices: self
+                .devices
+                .iter()
+                .filter(|(id, _)| devices.contains(id))
+                .map(|(id, p)| (*id, p.clone()))
+                .collect(),
+            clients: self
+                .clients
+                .iter()
+                .filter(|(id, _)| clients.contains(id))
+                .map(|(id, p)| (*id, p.clone()))
+                .collect(),
         }
     }
 
@@ -200,5 +230,18 @@ mod tests {
         assert_eq!(graph.label(4), "obs #4");
         assert_eq!(graph.label(7), "Player #7");
         assert_eq!(graph.label(99), "?");
+    }
+
+    #[test]
+    fn passing_clients_change_nothing() {
+        let mut graph = Graph::default();
+        let owner = Props::from([("client.id".to_owned(), "10".to_owned())]);
+        graph.apply(Event::Client(10, Props::new()));
+        graph.apply(Event::Node(Node { id: 1, props: owner }));
+        let before = graph.owned();
+        // A `pw-link` comes and is still connected at the next sync.
+        graph.apply(Event::Client(11, Props::new()));
+        assert_eq!(graph.owned(), before);
+        assert!(graph.owned().clients.contains_key(&10));
     }
 }
